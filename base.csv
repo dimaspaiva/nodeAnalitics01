@@ -1,0 +1,12 @@
+ID,idade,salario,formacao,carga,pratos,vinhos,capacidade,localizacao,cardapio,lucratividade,saldo
+1,45,7000,superior,8,15,nao,100,portuario,mediterraneo,30000,+
+2,48,30000,posgraduacao,8,25,sim,100,portuario,espanhol,150000,+
+3,31,7500,superior,8,10,nao,70,centro,oriental,-15000,-
+4,40,8000,medio,6,15,nao,80,aeroportuario,argentino,50000,+
+5,25,8000,superior,6,18,nao,300,rodiviario,carnes,70000,+
+6,75,0,superior,6,23,nao,150,centro,italiano,5000,+
+7,43,15000,posgraduacao,8,20,sim,100,bairro,frances,70000,+
+8,29,7000,medio,8,13,sim,35,centro,argentino,30000,+
+9,50,8500,superior,0,12,sim,50,bairro,mexicano,-2000,-
+10,51,15000,superior,6,16,nao,1,bairro,internacional,10000,+
+11,39,3000,medio,4,10,nao,50,zona rural,regional,10000,+
