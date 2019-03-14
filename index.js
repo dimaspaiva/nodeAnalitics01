@@ -5,13 +5,17 @@
 
 /*/
  *   Calcular o desvio padrão das colunas salário, cargo e lucratividade
+ *  Código não genérico, mas bem flexívo conforme a demanda
 /*/
+
+/*/ Módulo de leitura de arquivos nativo do nodejs/*/
 const fs = require("fs");
 
 lerCsv = link => {
   /*/
-    *   Retorna a tabela separada em matriz
-   /*/
+   *   Retorna a tabela separada em arrays de arrays, semelhante a 
+   *  matrizes
+  /*/
   const data = fs.readFileSync(link, { encoding: "utf-8" }).split("\r\n");
 
   const itens = [];
@@ -24,12 +28,13 @@ lerCsv = link => {
 
 lerColuna = (dados, col) => {
   /*/
-    *   Retorna a coluna transformada em float
-   /*/
+   *   Retorna a coluna transformada em float
+   *  em caso de coluna inexistente já quebra o fluxo
+  /*/
 
   const i = dados[0].indexOf(col);
   if (i === -1) {
-    console.log("Coluna informada inexistente");
+    return console.log("Coluna informada inexistente");
   }
 
   const coluna = [];
@@ -43,18 +48,24 @@ lerColuna = (dados, col) => {
 
 desvioPadrao = col => {
   /*/
-    *   Calcula o desvio padrão da coluna
-    *  S = √E(x-m)²/n-1
-   /*/
+   *   Calcula o desvio padrão da coluna
+   *  S = √E(x-m)²/n-1
+  /*/
+
+  /*/ Realiza a soma de todos os valores da coluna /*/
 
   const soma = col.reduce((next, item) => {
     return item + next;
   });
 
+  /*/ Calcula a média, simples, dos valores /*/
   const media = soma / col.length;
 
-  //  Regra do somatório, adicionando o 0 como valor inicial,
-  // garantindo o funcionamento correto
+  /*/  
+   *   Regra do somatório, adicionando o 0 como valor inicial,
+   *  garantindo o funcionamento correto da função reduce
+  /*/
+
   const somatorio = col.reduce((next, item) => (item - media) ** 2 + next, 0);
 
   return { desvio: Math.sqrt(somatorio / (col.length - 1)), media, soma };
@@ -62,29 +73,23 @@ desvioPadrao = col => {
 
 scoreZ = (item, media, desvio) => {
   /*/
-    *   Calcula o score-z
-    *  Z = (x - μ) / σ
-    *  σ -> desvio padrão
-    *  μ -> média aritmética
-   /*/
+   *   Calcula o score-z
+   *  Z = (x - μ) / σ
+   *  σ -> desvio padrão
+   *  μ -> média aritmética
+  /*/
   return (item - media) / desvio;
 };
 
 allScoreZ = async (coluna, dados) => {
-  const { valores, index } = await lerColuna(dados, coluna);
-  // if (index === -1) {
-  //   return console.log(index);
-  // } else {
-  //   console.log(valores + " -> " + index);
-  // }
+  const { valores } = await lerColuna(dados, coluna);
   const { desvio, media } = desvioPadrao(valores);
   const zScore = [];
-  const update = [];
   const newCol = [];
-  let col = 0;
 
-  // Cria uma array com os valores calculados na formula do score-Z
+  /*/ Cria uma array com os valores calculados na formula do score-Z /*/
   for (i in valores) {
+    /*/ Arredonda os valores par 4 casas decimais /*/
     zScore.push(Math.round(scoreZ(valores[i], media, desvio) * 10000) / 10000);
   }
 
@@ -96,28 +101,6 @@ allScoreZ = async (coluna, dados) => {
     }
   }
   return newCol;
-
-  /*/ Implementação desnecessária /*/
-  // for (i in dados) {
-  //   if (i === "0") {
-  //     // Verifica a existencia do calculo de score-Z
-  //     // col = dados[i].indexOf("z-" + coluna);
-  //     if (col === -1) {
-  //       // Cria nova coluna
-  //       dados[i].push("z-" + coluna);
-  //     }
-  //   } else {
-  //     if (col !== -1) {
-  //       // Altera o valor na coluna existente
-  //       dados[i][col] = zScore[parseInt(i) - 1];
-  //     } else {
-  //       // Insere novo valor na linha referente
-  //       dados[i].push(zScore[parseInt(i) - 1]);
-  //     }
-  //   }
-  //   update.push(dados[i].join(","));
-  // }
-  // return update.join("\r\n");
 };
 
 // allScoreZ("lucratividade", dados);
@@ -130,6 +113,11 @@ async function main() {
   const colPratos = await allScoreZ("pratos", dados);
 
   for (i in colCarga) {
+    /*/
+     *   Concatena os itens em linhas que farão a composição da planilha
+     *  Caso tenha a necessidade, para salvar em csv, basta substituir o
+     *  \n por vírgulas e a extensão do arquivo
+    /*/
     result.push(
       colCarga[i] + "\t" + colSalario[i] + "\t" + colPratos[i] + "\n"
     );
@@ -137,9 +125,6 @@ async function main() {
 
   console.log(result);
   fs.writeFileSync("./result.xls", result.join(""));
-  // console.log(colCarga);
-  // console.log(colSalario);
-  // console.log(colPratos);
 }
 
 main();
